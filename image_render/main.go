@@ -6,9 +6,12 @@ import (
 	"image/draw"
 	"log"
 	"math"
+	"os"
 	"time"
 
 	"github.com/fogleman/gg"
+	"github.com/golang/freetype"
+	"github.com/golang/freetype/truetype"
 	"github.com/nfnt/resize"
 )
 
@@ -66,18 +69,61 @@ func (c *RoundedRect) At(x, y int) color.Color {
 	return color.Transparent
 }
 
+func drawText(img draw.Image, text string, x, y int, c color.Color, fontSize float64, fontWeight int) {
+	// Load font file
+	fontBytes, err := os.ReadFile("./Lato-Regular.ttf")
+	if err != nil {
+		panic(err)
+	}
+
+	// Parse font file
+	font, err := truetype.Parse(fontBytes)
+	if err != nil {
+		panic(err)
+	}
+
+	// Create freetype context
+	fc := freetype.NewContext()
+	fc.SetDPI(float64(fontWeight) * 0.7 / 3)
+	fc.SetFontSize(fontSize)
+	fc.SetFont(font)
+	fc.SetSrc(image.NewUniform(c))
+	fc.SetDst(img)
+	fc.SetClip(img.Bounds())
+
+	// Draw text
+	pt := freetype.Pt(x, y+int(fc.PointToFixed(fontSize)>>6))
+	_, err = fc.DrawString(text, pt)
+	if err != nil {
+		panic(err)
+	}
+}
+
 func main() {
 	log.Println("Hello")
-	// resized cover : 1080x1440
+	// resized cover : 1082x1453
 	// background shared : 2160x2160
 	start := time.Now().UnixMilli()
 	background, _ := gg.LoadImage("background.png")
 	unsplash, _ := gg.LoadImage("raw_image.jpg")
+
 	unsplashResized := resize.Resize(1082, 1453, unsplash, resize.Lanczos2)
+
 	gg.SavePNG("unsplashResized.png", unsplashResized)
 	backgroundN := image.NewRGBA(background.Bounds())
 	draw.Draw(backgroundN, background.Bounds(), background, image.Point{0, 0}, draw.Over)
 	draw.DrawMask(backgroundN, image.Rect(526, 296, 1608, 1749), unsplashResized, image.Point{0, 0}, &RoundedRect{unsplashResized.Bounds().Dx(), unsplashResized.Bounds().Dy(), 8}, image.Point{0, 0}, draw.Over)
+
+	rounedRect := image.Rect(0, 0, 1022, 1393)
+	rounedRectLineBase := image.NewRGBA(rounedRect)
+	draw.Draw(rounedRectLineBase, rounedRectLineBase.Bounds(), &image.Uniform{color.Transparent}, image.Point{0, 0}, draw.Over)
+	//color.RGBA{255, 255, 255, uint8(0.2 * 255)}
+	draw.DrawMask(rounedRectLineBase, rounedRectLineBase.Bounds(), &image.Uniform{color.RGBA{255, 255, 255, uint8(0.2 * 255)}}, image.Point{0, 0}, &RoundedRect{rounedRect.Dx(), rounedRect.Dy(), 8}, image.Point{0, 0}, draw.Over)
+	draw.DrawMask(rounedRectLineBase, image.Rect(4, 4, rounedRect.Dx()-4, rounedRect.Dy()-4), &image.Uniform{color.Transparent}, image.Point{0, 0}, &RoundedRect{rounedRect.Dx() - 4, rounedRect.Dy() - 4, 8}, image.Point{0, 0}, draw.Src)
+	draw.Draw(backgroundN, image.Rect(526+30, 296+30, rounedRect.Dx()+526+30, rounedRect.Dy()+296+30), rounedRectLineBase, image.Point{0, 0}, draw.Over)
+
+	drawText(backgroundN, "AUTHOR NAME", 526+63, 296+57, color.White, 25, 700)
+	drawText(backgroundN, "Book Title", 526+63, 296+114, color.White, 54, 900)
 
 	dc := gg.NewContextForRGBA(backgroundN)
 	dc.SavePNG("shared.png")
