@@ -72,26 +72,15 @@ func main() {
 	// background shared : 2160x2160
 	start := time.Now().UnixMilli()
 	background, _ := gg.LoadImage("background.png")
-	// backgroundResized := resize.Resize(376, 376, background, resize.Lanczos2)
 	unsplash, _ := gg.LoadImage("raw_image.jpg")
 	unsplashResized := resize.Resize(1082, 1453, unsplash, resize.Lanczos2)
 	gg.SavePNG("unsplashResized.png", unsplashResized)
-	// gg.SavePNG("backgroundResized.png", backgroundResized)
 	backgroundN := image.NewRGBA(background.Bounds())
-	// unsplashResizedRounedCorner := roundeRectangle(unsplashResized, 50)
 	draw.Draw(backgroundN, background.Bounds(), background, image.Point{0, 0}, draw.Over)
-	draw.DrawMask(backgroundN, image.Rect(526, 296, 1082+526, 1453+296), unsplashResized, image.Point{0, 0}, &RoundedRect{unsplashResized.Bounds().Dx(), unsplashResized.Bounds().Dy(), 50}, image.Point{0, 0}, draw.Over)
-	// dc.DrawImage(unsplashResizedRounedCorner, 526, 296)
+	draw.DrawMask(backgroundN, image.Rect(526, 296, 1608, 1749), unsplashResized, image.Point{0, 0}, &RoundedRect{unsplashResized.Bounds().Dx(), unsplashResized.Bounds().Dy(), 8}, image.Point{0, 0}, draw.Over)
 
 	dc := gg.NewContextForRGBA(backgroundN)
 	dc.SavePNG("shared.png")
 
 	log.Printf("time : %d", time.Now().UnixMilli()-start)
-}
-
-func roundeRectangle(input image.Image, radius int) image.Image {
-	rounedRectBase := image.NewRGBA(input.Bounds())
-	draw.Draw(rounedRectBase, rounedRectBase.Bounds(), &image.Uniform{color.Transparent}, image.Point{0, 0}, draw.Over)
-	draw.DrawMask(rounedRectBase, rounedRectBase.Bounds(), input, image.Point{0, 0}, &RoundedRect{input.Bounds().Dx(), input.Bounds().Dy(), radius}, image.Point{0, 0}, draw.Over)
-	return rounedRectBase
 }
