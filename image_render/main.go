@@ -10,31 +10,20 @@ import (
 
 func main() {
 	log.Println("Hello")
-	// background, err := gg.LoadImage("output_temp.png")
-	// if err != nil {
-	// 	log.Printf("%v", err)
-	// }
-
-	// dc := gg.NewContextForImage(background)
-	// resized cover : 300x400
-	// background shared : 376x376
+	// resized cover : 1080x1440
+	// background shared : 2160x2160
 	start := time.Now().UnixMilli()
-	// scaleTemp, err := gg.LoadImage("background.png")
-	// if err != nil {
-	// 	log.Printf("%v", err)
-	// }
-	// scaleCtx := gg.NewContextForImage(scaleTemp)
-	// img := resize.Resize(400, 300, scaleCtx.Image(), resize.Lanczos2)
-
-	// dc := gg.NewContextForImage(img)
-	// dc.SavePNG("out.png")
 	background, _ := gg.LoadImage("background.png")
-	backgroundResized := resize.Resize(376, 376, background, resize.Lanczos2)
+	// backgroundResized := resize.Resize(376, 376, background, resize.Lanczos2)
 	unsplash, _ := gg.LoadImage("raw_image.jpg")
-	unsplashResized := resize.Resize(300, 400, unsplash, resize.Lanczos2)
+	unsplashResized := resize.Resize(1082, 1453, unsplash, resize.Lanczos2)
 	gg.SavePNG("unsplashResized.png", unsplashResized)
 	// gg.SavePNG("backgroundResized.png", backgroundResized)
-	dc := gg.NewContextForImage(backgroundResized)
+	dc := gg.NewContextForImage(background)
+
+	dc.DrawImage(unsplashResized, 526, 296)
+
+	dc.SavePNG("shared.png")
 
 	log.Printf("time : %d", time.Now().UnixMilli()-start)
 }
