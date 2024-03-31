@@ -71,7 +71,7 @@ func (c *RoundedRect) At(x, y int) color.Color {
 
 func drawText(img draw.Image, text string, x, y int, c color.Color, fontSize float64, fontWeight int) {
 	// Load font file
-	fontBytes, err := os.ReadFile("./Lato-Regular.ttf")
+	fontBytes, err := os.ReadFile("./Lato-Bold.ttf")
 	if err != nil {
 		panic(err)
 	}
@@ -122,8 +122,13 @@ func main() {
 	draw.DrawMask(rounedRectLineBase, image.Rect(4, 4, rounedRect.Dx()-4, rounedRect.Dy()-4), &image.Uniform{color.Transparent}, image.Point{0, 0}, &RoundedRect{rounedRect.Dx() - 4, rounedRect.Dy() - 4, 8}, image.Point{0, 0}, draw.Src)
 	draw.Draw(backgroundN, image.Rect(526+30, 296+30, rounedRect.Dx()+526+30, rounedRect.Dy()+296+30), rounedRectLineBase, image.Point{0, 0}, draw.Over)
 
-	drawText(backgroundN, "AUTHOR NAME", 526+63, 296+57, color.White, 25, 700)
-	drawText(backgroundN, "Book Title", 526+63, 296+114, color.White, 54, 900)
+	// Postop
+	// drawText(backgroundN, "JACKIE WILLIS", 526+63, 296+57, color.White, 22, 700)
+	// drawText(backgroundN, "Empty Streets", 526+63, 296+114, color.White, 36, 900)
+
+	// Pos bottom
+	drawText(backgroundN, "JACKIE WILLIS", 526+63, 1350+57, color.White, 22, 700)
+	drawText(backgroundN, "Empty Streets", 526+63, 1350+114, color.White, 36, 900)
 
 	dc := gg.NewContextForRGBA(backgroundN)
 	dc.SavePNG("shared.png")
