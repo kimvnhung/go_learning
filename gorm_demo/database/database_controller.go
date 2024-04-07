@@ -86,10 +86,6 @@ func (dc *DatabaseController) Insert(item any, update UpdateType) error {
 			}
 
 			if update == ASSOCIATIONS {
-				// err = dc.DB.Unscoped().Model(&existed).Association("Chapters").Clear()
-				// if err != nil {
-				// 	return err
-				// }
 				for _, ch := range book.Chapters {
 					rs = dc.DB.Save(&ch)
 					if rs.Error != nil {
