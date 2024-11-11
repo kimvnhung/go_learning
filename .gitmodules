@@ -4,3 +4,6 @@
 [submodule "gobaseservice"]
 	path = gobaseservice
 	url = https://github.com/kimvnhung/gobaseservice
+[submodule "simpleapi/proto/google"]
+	path = simpleapi/proto/google
+	url = https://github.com/kimvnhung/googleprotofiles.git

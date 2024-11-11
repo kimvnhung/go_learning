@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+option go_package = "github.com/kimvnhung/go_learning/simpleapi/proto/protogenerated";
+
+package protogenerated;
+
+import "google/api/annotations.proto";
+
+message Empty {}
+
+message CheckHealthRequest {
+    int32 number = 1;
+}
+
+message NotifyReply {
+    int32 code = 1;
+    string message = 2;
+}
+
+message TransferRequest {
+    int32 decoded = 1;
+}
