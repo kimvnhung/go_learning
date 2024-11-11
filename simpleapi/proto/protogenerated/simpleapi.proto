@@ -8,7 +8,7 @@ import "google/api/annotations.proto";
 import "protogenerated/models.proto";
 
 service SimpleApi {
-  rpc CheckHealth (CheckHealthyRequest) returns (NotifyReply) {
+  rpc CheckHealth (CheckHealthRequest) returns (NotifyReply) {
     option (google.api.http) = {
       get: "/checkhealth"
     };
