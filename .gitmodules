@@ -1,0 +1,3 @@
+[submodule "gosubmodule"]
+	path = gosubmodule
+	url = https://github.com/kimvnhung/gosubmodule.git
