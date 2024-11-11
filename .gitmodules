@@ -1,3 +1,6 @@
 [submodule "gosubmodule"]
 	path = gosubmodule
 	url = https://github.com/kimvnhung/gosubmodule.git
+[submodule "gobaseservice"]
+	path = gobaseservice
+	url = https://github.com/kimvnhung/gobaseservice
