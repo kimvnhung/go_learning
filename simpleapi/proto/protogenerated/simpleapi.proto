@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+option go_package = "github.com/kimvnhung/go_learning/simpleapi/proto/protogenerated";
+
+package protogenerated;
+
+import "google/api/annotations.proto";
+import "protogenerated/models.proto";
+
+service SimpleApi {
+  rpc CheckHealth (CheckHealthRequest) returns (NotifyReply) {
+    option (google.api.http) = {
+      get: "/checkhealth"
+    };
+  }
+}
