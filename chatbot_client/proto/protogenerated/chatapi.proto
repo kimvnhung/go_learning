@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+option go_package = "github.com/kimvnhung/go_learning/chatbot_client/proto/protogenerated";
+
+package protogenerated;
+
+import "google/api/annotations.proto";
+
+service ChatApi {
+  rpc GetChat (MessageRequest) returns (MessageRespone) {
+    option (google.api.http) = {
+      get: "/getChat"
+    };
+  }
+}
+
+message MessageRequest {
+  string message = 1;
+}
+
+message MessageRespone {
+  string message = 1;
+  int32 status = 2;
+}
