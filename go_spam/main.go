@@ -2,9 +2,12 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"math/rand"
+	"net/http"
 	"time"
 
 	"github.com/chromedp/chromedp"
@@ -56,6 +59,8 @@ var (
 		chromedp.Flag("ignore-certificate-errors", true),
 		chromedp.Flag("ignore-certificate-errors-spki-list", true),
 	)
+
+	url = "https://trungtamdienlanhsaoviet.vn/"
 )
 
 func doGoogleAdsClick() {
@@ -80,9 +85,6 @@ func doSearchSpam(result chan bool) {
 	// Set timeout
 	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
-
-	// Define the URL to open
-	url := "https://trungtamdienlanhsaoviet.vn/"
 
 	// Run chromedp tasks
 	var pageTitle string
@@ -148,43 +150,95 @@ func doSearchSpam(result chan bool) {
 	result <- true
 }
 
+func getWpJson() WpJsonResponse {
+	res, err := http.Get("https://trungtamdienlanhsaoviet.vn/wp-json/")
+	if err != nil {
+		log.Println("Error:", err)
+		return WpJsonResponse{}
+	}
+
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println("Error reading response:", err)
+		return WpJsonResponse{}
+	}
+
+	// Parsing the response
+	var wpJson WpJsonResponse
+	err = json.Unmarshal(body, &wpJson)
+
+	if err != nil {
+		log.Println("Error parsing response:", err)
+		return WpJsonResponse{}
+	}
+
+	return wpJson
+}
+
+func generateLink() string {
+	rd := rand.Intn(5)
+	switch rd {
+	case 0:
+		return url
+	case 1:
+		return fmt.Sprintf("%s/?s=%s&post_type=product", url, randomSearchText())
+	case 2:
+		return fmt.Sprintf("%s/?s=%s&post_type=product", url, randomSearchText())
+	case 3:
+		return fmt.Sprintf("%s/?s=%s&post_type=product", url, randomSearchText())
+	case 4:
+		return fmt.Sprintf("%s/?s=%s&post_type=product", url, randomSearchText())
+	default:
+		return url
+	}
+}
+
+func doSpamLink() {
+
+}
+
 func main() {
 
-	timeStart := time.Now()
+	// timeStart := time.Now()
 
-	runningCount := 0
-	succeedCount := 0
-	totalCount := 0
-	resultChan := make(chan bool)
-	for {
-		if runningCount < 10 {
-			go func() {
-				doSearchSpam(resultChan)
-			}()
-			runningCount++
-		}
+	// runningCount := 0
+	// succeedCount := 0
+	// totalCount := 0
+	// resultChan := make(chan bool)
+	// for {
+	// 	if runningCount < 10 {
+	// 		go func() {
+	// 			doSearchSpam(resultChan)
+	// 		}()
+	// 		runningCount++
+	// 	}
 
-		select {
-		case res := <-resultChan:
-			runningCount--
-			totalCount++
-			if res {
-				succeedCount++
-			}
+	// 	select {
+	// 	case res := <-resultChan:
+	// 		runningCount--
+	// 		totalCount++
+	// 		if res {
+	// 			succeedCount++
+	// 		}
 
-			successRate := int(succeedCount * 100 / totalCount)
-			executedTime := time.Since(timeStart)
-			hours := executedTime / time.Hour
-			executedTime -= hours * time.Hour
-			minutes := executedTime / time.Minute
-			executedTime -= minutes * time.Minute
-			seconds := executedTime / time.Second
-			log.Printf("%02dh%02dm%02ds, Total: %d, Succeed: %d, Failed: %d", hours, minutes, seconds, totalCount, successRate, totalCount-succeedCount)
-		default:
-			if runningCount > 10 {
-				time.Sleep(1 * time.Second)
-				log.Println("Sleeping...")
-			}
-		}
-	}
+	// 		successRate := int(succeedCount * 100 / totalCount)
+	// 		executedTime := time.Since(timeStart)
+	// 		hours := executedTime / time.Hour
+	// 		executedTime -= hours * time.Hour
+	// 		minutes := executedTime / time.Minute
+	// 		executedTime -= minutes * time.Minute
+	// 		seconds := executedTime / time.Second
+	// 		log.Printf("%02dh%02dm%02ds, Total: %d, Succeed: %d, Failed: %d", hours, minutes, seconds, totalCount, successRate, totalCount-succeedCount)
+	// 	default:
+	// 		if runningCount > 10 {
+	// 			time.Sleep(1 * time.Second)
+	// 			log.Println("Sleeping...")
+	// 		}
+	// 	}
+	// }
+
+	Wpjso := getWpJson()
+	log.Println(Wpjso)
 }

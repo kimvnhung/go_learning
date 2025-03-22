@@ -2,9 +2,10 @@ module github.com/kimvnhung/go_learning/go_spam
 
 go 1.23.3
 
+require github.com/chromedp/chromedp v0.13.3
+
 require (
 	github.com/chromedp/cdproto v0.0.0-20250319231242-a755498943c8 // indirect
-	github.com/chromedp/chromedp v0.13.3 // indirect
 	github.com/chromedp/sysutil v1.1.0 // indirect
 	github.com/go-json-experiment/json v0.0.0-20250211171154-1ae217ad3535 // indirect
 	github.com/gobwas/httphead v0.1.0 // indirect
