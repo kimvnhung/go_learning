@@ -1,4 +1,4 @@
-package webbaseaction
+package actions
 
 import (
 	"context"
