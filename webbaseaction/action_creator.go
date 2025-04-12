@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"log"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/chromedp/cdproto/cdp"
@@ -16,13 +15,56 @@ import (
 type ActionType int
 
 const (
-	ActNone    ActionType = iota // Do nothing
-	ActOpenURL                   // Open a URL in the default browser
+	ActNone      ActionType = iota // Do nothing
+	ActOpenURL                     // Open a URL in the default browser
+	ActGetFBPost                   // Get Facebook post
 )
 
 type IAction interface {
 	GetActionType() ActionType     // Get the type of action
 	Act(ctx context.Context) error // Perform the action
+}
+
+func cleanUp(cookieData []byte) []byte {
+	log.Println("Cleaning up cookie data")
+	var mapData []map[string]interface{}
+
+	if err := json.Unmarshal(cookieData, &mapData); err != nil {
+		log.Printf("Error unmarshalling JSON data: %v", err)
+		return cookieData
+	}
+
+	// Loop in mapData in recursively, check if contains "sameSite" key and replace with below map
+	// "none"-> "None"
+	// "lax" -> "Lax"
+	// "strict" -> "Strict"
+	// "unspecified" -> "None"
+	// "no_restriction" -> "None"
+	for i := 0; i < len(mapData); i++ {
+		if _, ok := mapData[i]["sameSite"]; ok {
+			switch mapData[i]["sameSite"] {
+			case "none":
+				mapData[i]["sameSite"] = "None"
+			case "lax":
+				mapData[i]["sameSite"] = "Lax"
+			case "strict":
+				mapData[i]["sameSite"] = "Strict"
+			case "unspecified":
+				mapData[i]["sameSite"] = "None"
+			case "no_restriction":
+				mapData[i]["sameSite"] = "None"
+			}
+		}
+	}
+
+	// Marshal the modified data back to JSON
+	cleanedData, err := json.Marshal(mapData)
+	if err != nil {
+		log.Printf("Error marshalling cleaned data: %v", err)
+		return cookieData
+	}
+	log.Println("Cleaned up cookie data")
+	return cleanedData
 }
 
 func LoadCookiesFromFile(filePath string) ([]*network.Cookie, error) {
@@ -31,16 +73,9 @@ func LoadCookiesFromFile(filePath string) ([]*network.Cookie, error) {
 	if err != nil {
 		return nil, err
 	}
-	// Replace all "sameSite": "no_restriction" with "sameSite": "None"
-	jsonData = []byte(strings.ReplaceAll(string(jsonData), "\"sameSite\": \"no_restriction\"", "\"sameSite\": \"None\""))
-	// Replace all "sameSite": "unspecified" with "sameSite": "None"
-	jsonData = []byte(strings.ReplaceAll(string(jsonData), "\"sameSite\": \"unspecified\"", "\"sameSite\": \"None\""))
-	// Replace all "sameSite": "lax" with "sameSite": "Lax"
-	jsonData = []byte(strings.ReplaceAll(string(jsonData), "\"sameSite\": \"lax\"", "\"sameSite\": \"Lax\""))
-	// Replace all "sameSite": "strict" with "sameSite": "Strict"
-	jsonData = []byte(strings.ReplaceAll(string(jsonData), "\"sameSite\": \"strict\"", "\"sameSite\": \"Strict\""))
-	// Replace all "sameSite": "none" with "sameSite": "None"
-	jsonData = []byte(strings.ReplaceAll(string(jsonData), "\"sameSite\": \"none\"", "\"sameSite\": \"None\""))
+
+	jsonData = cleanUp(jsonData)
+
 	// Unmarshal JSON data into a slice of cookies
 	var cookies []*network.Cookie
 	if err := json.Unmarshal(jsonData, &cookies); err != nil {
@@ -52,9 +87,19 @@ func LoadCookiesFromFile(filePath string) ([]*network.Cookie, error) {
 }
 
 func Run(actions []IAction) error {
+	opts := append(chromedp.DefaultExecAllocatorOptions[:],
+		chromedp.Flag("headless", false),                                // 👈 Run with GUI
+		chromedp.Flag("disable-blink-features", "AutomationControlled"), // Less bot-like
+		chromedp.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"),
+	)
 	// Create a parent context
-	ctx, cancel := chromedp.NewContext(context.Background())
+	allocCtx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)
 	defer cancel()
+
+	ctx, cancel := chromedp.NewContext(allocCtx)
+	defer cancel()
+
+	log.Println("Prepared context")
 	for _, action := range actions {
 		if err := action.Act(ctx); err != nil {
 			return err
@@ -70,8 +115,16 @@ func RunWithCookiesFile(actions []IAction, filePath string) error {
 		return err
 	}
 
+	opts := append(chromedp.DefaultExecAllocatorOptions[:],
+		chromedp.Flag("headless", false), // 👈 Run with GUI
+		// chromedp.Flag("disable-blink-features", "AutomationControlled"), // Less bot-like
+		chromedp.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.6998.117 Safari/537.36"),
+	)
 	// Create a parent context
-	ctx, cancel := chromedp.NewContext(context.Background())
+	allocCtx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)
+	defer cancel()
+
+	ctx, cancel := chromedp.NewContext(allocCtx)
 	defer cancel()
 
 	// Load cookies into the context
@@ -102,8 +155,16 @@ func RunWithCookiesFile(actions []IAction, filePath string) error {
 }
 
 func RunWithCookies(actions []IAction, cookies map[string]string) error {
+	opts := append(chromedp.DefaultExecAllocatorOptions[:],
+		chromedp.Flag("headless", false),                                // 👈 Run with GUI
+		chromedp.Flag("disable-blink-features", "AutomationControlled"), // Less bot-like
+		chromedp.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"),
+	)
 	// Create a parent context
-	ctx, cancel := chromedp.NewContext(context.Background())
+	allocCtx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)
+	defer cancel()
+
+	ctx, cancel := chromedp.NewContext(allocCtx)
 	defer cancel()
 
 	// Load cookies into the context

@@ -41,3 +41,38 @@ func TestRunWithCookieFile(t *testing.T) {
 	err := wba.RunWithCookiesFile(actions, fmt.Sprintf("%s_cookies.json", domain))
 	require.NoError(t, err)
 }
+
+func TestGetFbPost(t *testing.T) {
+	domain := "www.facebook.com"
+	actions := []wba.IAction{
+		&act.ActionGetFBPost{
+			Url:       fmt.Sprintf("https://%s/me", domain),
+			ClassPath: "#mount_0_0_lN > div > div:nth-child(1) > div > div.x9f619.x1n2onr6.x1ja2u2z > div > div > div.x78zum5.xdt5ytf.x1t2pt76.x1n2onr6.x1ja2u2z.x10cihs4 > div.x78zum5.xdt5ytf.x1t2pt76 > div > div > div.x6s0dn4.x78zum5.xdt5ytf.x193iq5w > div.x9f619.x193iq5w.x1talbiv.x1sltb1f.x3fxtfs.x1swvt13.x1pi30zi.xw7yly9 > div > div.x9f619.x1n2onr6.x1ja2u2z.xeuugli.xs83m0k.xjl7jj.x1xmf6yo.x1emribx.x1e56ztr.x1i64zmx.x19h7ccj.xu9j1y6.x7ep2pv > div:nth-child(3)",
+			CallBack: func(post act.FbPost) error {
+				fmt.Println("Post message:", post.PostMessage)
+				return nil
+			},
+		},
+	}
+
+	err := wba.RunWithCookiesFile(actions, fmt.Sprintf("%s_cookies.json", domain))
+	require.NoError(t, err)
+}
+
+func TestQueryText(t *testing.T) {
+
+	domain := "www.upwork.com"
+	actions := []wba.IAction{
+		&act.ActionGetFBPost{
+			Url:       fmt.Sprintf("https://%s", domain),
+			ClassPath: "#login > div > div > footer > div > div",
+			CallBack: func(post act.FbPost) error {
+				fmt.Println("Post message:", post.PostMessage)
+				return nil
+			},
+		},
+	}
+
+	err := wba.RunWithCookiesFile(actions, fmt.Sprintf("%s_cookies.json", domain))
+	require.NoError(t, err)
+}
