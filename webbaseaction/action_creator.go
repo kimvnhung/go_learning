@@ -3,8 +3,10 @@ package webbaseaction
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"log"
 	"os"
+	"strings"
+	"time"
 
 	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/cdproto/network"
@@ -29,10 +31,20 @@ func LoadCookiesFromFile(filePath string) ([]*network.Cookie, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	// Replace all "sameSite": "no_restriction" with "sameSite": "None"
+	jsonData = []byte(strings.ReplaceAll(string(jsonData), "\"sameSite\": \"no_restriction\"", "\"sameSite\": \"None\""))
+	// Replace all "sameSite": "unspecified" with "sameSite": "None"
+	jsonData = []byte(strings.ReplaceAll(string(jsonData), "\"sameSite\": \"unspecified\"", "\"sameSite\": \"None\""))
+	// Replace all "sameSite": "lax" with "sameSite": "Lax"
+	jsonData = []byte(strings.ReplaceAll(string(jsonData), "\"sameSite\": \"lax\"", "\"sameSite\": \"Lax\""))
+	// Replace all "sameSite": "strict" with "sameSite": "Strict"
+	jsonData = []byte(strings.ReplaceAll(string(jsonData), "\"sameSite\": \"strict\"", "\"sameSite\": \"Strict\""))
+	// Replace all "sameSite": "none" with "sameSite": "None"
+	jsonData = []byte(strings.ReplaceAll(string(jsonData), "\"sameSite\": \"none\"", "\"sameSite\": \"None\""))
 	// Unmarshal JSON data into a slice of cookies
 	var cookies []*network.Cookie
 	if err := json.Unmarshal(jsonData, &cookies); err != nil {
+		log.Printf("Error unmarshalling JSON data: %v", err)
 		return nil, err
 	}
 
@@ -65,12 +77,12 @@ func RunWithCookiesFile(actions []IAction, filePath string) error {
 	// Load cookies into the context
 	if err := chromedp.Run(ctx, chromedp.ActionFunc(func(ctx context.Context) error {
 		for _, cookie := range cookies {
-			expireTime := &cdp.TimeSinceEpoch{}
-			expireTime.UnmarshalJSON([]byte(fmt.Sprintf("%d", int(cookie.Expires))))
+			// create cookie expiration
+			expr := cdp.TimeSinceEpoch(time.Now().Add(180 * 24 * time.Hour))
 			err := network.SetCookie(cookie.Name, cookie.Value).
 				WithDomain(cookie.Domain).
 				WithPath(cookie.Path).
-				WithExpires(expireTime).
+				WithExpires(&expr).
 				Do(ctx)
 			if err != nil {
 				return err

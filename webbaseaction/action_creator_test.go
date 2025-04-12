@@ -1,6 +1,7 @@
 package webbaseaction_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -30,12 +31,13 @@ func TestActionSleep(t *testing.T) {
 }
 
 func TestRunWithCookieFile(t *testing.T) {
+	domain := "www.facebook.com"
 	actions := []wba.IAction{
 		&act.ActionNone{},
-		&act.ActionOpenUrl{Url: "https://facebook.com"},
+		&act.ActionOpenUrl{Url: fmt.Sprintf("https://%s", domain)},
 		&act.ActionSleep{Duration: 2 * time.Second},
 	}
 
-	err := wba.RunWithCookiesFile(actions, "cookies.json")
+	err := wba.RunWithCookiesFile(actions, fmt.Sprintf("%s_cookies.json", domain))
 	require.NoError(t, err)
 }
